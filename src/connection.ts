@@ -21,6 +21,12 @@ export function createConnectionFromConfig(
           }, {})
         : undefined,
     });
+  } else if (config.driver === "turso") {
+    return new TursoDriver({
+      url: config.connection.url,
+      attach: config.connection.attach,
+      token: config.connection.token,
+    });
   } else if (config.driver === "mysql") {
     return new MySQLDriver(config.connection);
   }

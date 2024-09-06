@@ -1,4 +1,4 @@
-import { Client, createClient, ResultSet } from "@libsql/client";
+import { Client, createClient, ResultSet, Transaction } from "@libsql/client";
 import BaseDriver, { ColumnType, Result, ResultHeader } from "./base";
 
 function convertSqliteType(type: string | undefined): ColumnType {
@@ -83,7 +83,9 @@ function escapeSqlString(str: string) {
 
 export default class TursoDriver implements BaseDriver {
   name = "sqlite";
+  protected url: string;
   protected db: Client;
+  protected client: Client | Transaction;
   protected attach?: Record<string, string>;
 
   constructor(config: {
@@ -92,22 +94,33 @@ export default class TursoDriver implements BaseDriver {
     attach?: Record<string, string>;
   }) {
     this.attach = config.attach;
+    this.url = config.url;
 
     this.db = createClient({
       url: config.url,
       authToken: config.token,
       intMode: "number",
     });
+
+    this.client = this.db;
   }
 
   async init() {
     if (this.attach) {
-      for (const [alias, file] of Object.entries(this.attach)) {
-        await this.db.execute(
-          `ATTACH DATABASE ${escapeSqlString(file)} AS ${escapeSqlString(
-            alias
-          )}`
-        );
+      if (!this.url.startsWith("file:")) {
+        this.client = await this.db.transaction();
+
+        for (const [alias, file] of Object.entries(this.attach)) {
+          await this.client.execute(`ATTACH DATABASE "${file}" AS ${alias}`);
+        }
+      } else {
+        for (const [alias, file] of Object.entries(this.attach)) {
+          await this.client.execute(
+            `ATTACH DATABASE ${escapeSqlString(file)} AS ${escapeSqlString(
+              alias
+            )}`
+          );
+        }
       }
     }
 
@@ -115,10 +128,10 @@ export default class TursoDriver implements BaseDriver {
   }
 
   async query(statement: string): Promise<Result> {
-    return transformRawResult(await this.db.execute(statement));
+    return transformRawResult(await this.client.execute(statement));
   }
 
   async batch(statements: string[]): Promise<Result[]> {
-    return (await this.db.batch(statements)).map(transformRawResult);
+    return (await this.client.batch(statements)).map(transformRawResult);
   }
 }
