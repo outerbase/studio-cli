@@ -35,8 +35,15 @@ export function createConnectionFromConfig(
 export function parseFromConnectionString(conn: string): BaseDriver | null {
   try {
     const url = new URL(conn);
-    if (url.protocol === "libsql") {
-      return new TursoDriver({ url: conn });
+
+    if (url.protocol === "mysql:") {
+      return new MySQLDriver({
+        host: url.host,
+        port: Number(url.port),
+        database: url.pathname.replace("/", ""),
+        password: url.password,
+        user: url.username,
+      });
     }
   } catch {}
 
