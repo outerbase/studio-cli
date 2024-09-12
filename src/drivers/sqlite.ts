@@ -105,6 +105,10 @@ export default class TursoDriver implements BaseDriver {
     this.client = this.db;
   }
 
+  connectionName(): string {
+    return `[LibSQL] ${this.url}`;
+  }
+
   async init() {
     if (this.attach) {
       if (!this.url.startsWith("file:")) {

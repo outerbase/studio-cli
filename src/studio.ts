@@ -20,6 +20,8 @@ const htmlCode = `<!doctype>
       border: 0;
     }
   </style>
+  <title>$title</title>
+  <link rel="icon" type="image/x-icon" href="https://libsqlstudio.com/icons/outerbase.ico">
 </head>
 <body>
   <script>
@@ -78,10 +80,9 @@ export function serve(
 
   app.get("/", (_, res) => {
     return res.send(
-      htmlCode.replace(
-        "$studio",
-        studio ?? "https://libsqlstudio.com/embed/sqlite"
-      )
+      htmlCode
+        .replace("$studio", studio ?? "https://libsqlstudio.com/embed/sqlite")
+        .replace("$title", driver.connectionName())
     );
   });
 

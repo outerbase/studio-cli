@@ -137,6 +137,10 @@ export default class MySQLDriver implements BaseDriver {
     return this.db;
   }
 
+  connectionName(): string {
+    return `[MySQL] ${this.connectionString.database} - ${this.connectionString.host}`;
+  }
+
   async init() {
     return;
   }

@@ -26,6 +26,7 @@ export enum ColumnType {
 
 export default abstract class BaseDriver {
   abstract name: string;
+  abstract connectionName(): string;
   abstract init(): Promise<void>;
   abstract batch(statements: string[]): Promise<Result[]>;
   abstract query(statement: string): Promise<Result>;

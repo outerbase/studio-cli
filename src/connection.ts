@@ -38,7 +38,7 @@ export function parseFromConnectionString(conn: string): BaseDriver | null {
 
     if (url.protocol === "mysql:") {
       return new MySQLDriver({
-        host: url.host,
+        host: url.hostname,
         port: Number(url.port),
         database: url.pathname.replace("/", ""),
         password: url.password,
