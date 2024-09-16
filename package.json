@@ -4,7 +4,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "bundle": "tsup",
-    "dev": "ts-node ./src/index.ts"
+    "dev": "ts-node ./src/index.ts",
+    "publish-npm-module": "npm publish --access public",
+    "prepack": "npm install && npm run bundle"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
