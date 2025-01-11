@@ -4,6 +4,7 @@ import BaseDriver from "./drivers/base";
 import MySQLDriver from "./drivers/mysql";
 import TursoDriver from "./drivers/sqlite";
 import { JsonConnectionConfig } from "./type";
+import PostgresDriver from "./drivers/postgres";
 
 export function createConnectionFromConfig(
   configFile: string,
@@ -29,6 +30,8 @@ export function createConnectionFromConfig(
     });
   } else if (config.driver === "mysql") {
     return new MySQLDriver(config.connection);
+  } else if (config.driver === "postgres") {
+    return new PostgresDriver(config.connection);
   }
 }
 
