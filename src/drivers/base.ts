@@ -1,8 +1,10 @@
+import { ColumnType } from "@outerbase/sdk-transform";
+
 export interface ResultHeader {
   name: string;
   displayName: string;
   originalType: string | null;
-  type: ColumnType;
+  type?: ColumnType;
 }
 
 export interface Result {
@@ -15,13 +17,6 @@ export interface Result {
     queryDurationMs: number | null;
   };
   lastInsertRowid?: number;
-}
-
-export enum ColumnType {
-  TEXT = 1,
-  INTEGER = 2,
-  REAL = 3,
-  BLOB = 4,
 }
 
 export default abstract class BaseDriver {

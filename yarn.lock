@@ -267,6 +267,11 @@
   resolved "https://registry.yarnpkg.com/@neon-rs/load/-/load-0.0.4.tgz#2a2a3292c6f1fef043f49886712d3c96a547532e"
   integrity sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==
 
+"@outerbase/sdk-transform@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@outerbase/sdk-transform/-/sdk-transform-1.0.0.tgz#9d6d3cda67790f2eed67dfdeaff39849b51c6a99"
+  integrity sha512-TSZo6EZZEyHl8yt6NLKFL85gNDA7ysQvP2eonSF3FQfIxJxfwZe1ZkfvqFzhjnjDV4wOpFzuOBRS7DGSUuTXQw==
+
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"

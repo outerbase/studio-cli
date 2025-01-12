@@ -1,15 +1,8 @@
-import { transformArrayBasedResult } from "../utils";
-import BaseDriver, { ColumnType, Result } from "./base";
-import pg, { type ConnectionConfig, type FieldDef, type PoolClient } from "pg";
+import { transformPgResult, setPgParser } from "@outerbase/sdk-transform";
+import BaseDriver, { Result } from "./base";
+import pg, { type ConnectionConfig, type PoolClient } from "pg";
 
-pg.types.setTypeParser(pg.types.builtins.TIME, (timeStr) => timeStr);
-pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (timeStr) => timeStr);
-pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (timeStr) => timeStr);
-pg.types.setTypeParser(pg.types.builtins.DATE, (timeStr) => timeStr);
-pg.types.setTypeParser(pg.types.builtins.TIME, (timeStr) => timeStr);
-pg.types.setTypeParser(pg.types.builtins.JSON, (json) => json);
-pg.types.setTypeParser(pg.types.builtins.JSONB, (json) => json);
-
+setPgParser(pg.types);
 export default class PostgresDriver extends BaseDriver {
   name = "postgres";
   protected db: pg.Pool;
@@ -31,29 +24,12 @@ export default class PostgresDriver extends BaseDriver {
   }
 
   async execute(tx: PoolClient | pg.Pool, statement: string): Promise<Result> {
-    const r = await tx.query({
-      text: statement,
-      rowMode: "array",
-    });
-    return {
-      ...transformArrayBasedResult<FieldDef>(
-        r.fields,
-        (header) => {
-          return {
-            name: header.name,
-            type: ColumnType.TEXT,
-            originalType: header.dataTypeID.toString(),
-          };
-        },
-        r.rows
-      ),
-      stat: {
-        queryDurationMs: 0,
-        rowsAffected: r.rowCount,
-        rowsRead: r.rowCount,
-        rowsWritten: 0,
-      },
-    };
+    return transformPgResult(
+      await tx.query({
+        text: statement,
+        rowMode: "array",
+      })
+    );
   }
 
   async query(statement: string): Promise<Result> {

@@ -1,5 +1,6 @@
 import { Client, createClient, ResultSet, Transaction } from "@libsql/client";
-import BaseDriver, { ColumnType, Result, ResultHeader } from "./base";
+import BaseDriver, { Result, ResultHeader } from "./base";
+import { ColumnType } from "@outerbase/sdk-transform";
 
 function convertSqliteType(type: string | undefined): ColumnType {
   // https://www.sqlite.org/datatype3.html
