@@ -1,3 +1,5 @@
+import { ClientConfig } from "pg";
+
 interface StudioOption {
   port?: number;
   studio?: string;
@@ -35,4 +37,12 @@ interface SqliteConfig extends StudioOption {
   };
 }
 
-export type JsonConnectionConfig = TursoConfig | SqliteConfig | MySqlConfig;
+interface PostgresConfig extends StudioOption {
+  driver: "postgres";
+  connection: ClientConfig;
+}
+export type JsonConnectionConfig =
+  | TursoConfig
+  | SqliteConfig
+  | MySqlConfig
+  | PostgresConfig;

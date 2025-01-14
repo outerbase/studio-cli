@@ -1,4 +1,5 @@
-import BaseDriver, { ColumnType, Result, ResultHeader } from "./base";
+import { ColumnType } from "@outerbase/sdk-transform";
+import BaseDriver, { Result, ResultHeader } from "./base";
 import { Pool, PoolConnection, createPool, Types } from "mysql2/promise";
 
 enum MySQLType {

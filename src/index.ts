@@ -74,6 +74,7 @@ program
         mysql: "mysql",
         sqlite: "sqlite",
         turso: "sqlite",
+        postgres: "postgres",
       };
 
       serve(driver, {
