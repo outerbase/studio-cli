@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { program } from "commander";
-import BaseDriver from "./drivers/base";
+import { glob } from 'glob';
 import {
   createConnectionFromConfig,
   parseFromConnectionString,
 } from "./connection";
 import fs from "fs";
 import { JsonConnectionConfig } from "./type";
-import { serve } from "./studio";
+import { serve, ServeOptions } from "./studio";
 const STUDIO_PATH = "https://libsqlstudio.com/embed";
 
 program
@@ -30,61 +30,96 @@ program
         log?: boolean;
       }
     ) => {
-      let driver: BaseDriver | null = null;
-      let port = flags?.port ?? 4000;
-      let studio = STUDIO_PATH;
-      let user = flags?.user;
-      let password = flags?.pass;
-      let enabledLog = flags?.log ?? false;
+      let options: ServeOptions = {
+        driver: null,
+        port: flags?.port ?? 4000,
+        studio: STUDIO_PATH,
+        username: flags?.user,
+        password: flags?.pass,
+        log: flags?.log ?? false,
+      }
 
+      // Attempt to load from connection string
       if (arg) {
-        // Parse connection from connection string
-        driver = parseFromConnectionString(arg);
-      } else {
-        const configFile = flags.config ?? "outerbase.json";
-
-        if (!fs.existsSync(configFile)) {
-          console.log("We cannot find " + configFile);
-          return;
-        }
-
-        try {
-          const configContent: JsonConnectionConfig = JSON.parse(
-            fs.readFileSync(configFile, "utf-8")
-          );
-
-          port = configContent.port ?? port;
-          user = configContent.auth?.username ?? user;
-          password = configContent.auth?.password ?? password;
-          studio = configContent.studio ?? studio;
-
-          driver = createConnectionFromConfig(configFile, configContent);
-        } catch (e) {
-          console.log(e);
-          console.log("The configuration is not a valid JSON file");
-          return;
-        }
+        return serve({
+          ...options,
+          driver: parseFromConnectionString(arg)
+        })
       }
 
-      if (!driver) {
-        console.log("We couldn't find the right driver for this database");
+      // If config file is specified, load from it
+      if (flags.config) {
+        return serve(loadConfigFromFile(options, flags.config))
       }
 
-      const driverSuffix: Record<JsonConnectionConfig["driver"], string> = {
-        mysql: "mysql",
-        sqlite: "sqlite",
-        turso: "sqlite",
-        postgres: "postgres",
-      };
+      if (detectCloudflareD1(options)) {
+        return;
+      }
 
-      serve(driver, {
-        port,
-        studio: studio + "/" + driverSuffix[driver.name],
-        username: user,
-        password: password,
-        log: enabledLog,
-      });
+      // Attempt to load from "outerbase.json"
+      console.log("No configuration specified. Attempt to load config from outerbase.json")
+      if (fs.existsSync("outerbase.json")) {
+        console.log("outerbase.json found. Loading from it");
+        serve(loadConfigFromFile(options, "outerbase.json"));
+      }
     }
   );
+
+function loadConfigFromFile(defaultOptions: ServeOptions, configFile: string): ServeOptions | null {
+  try {
+    if (!fs.existsSync(configFile)) {
+      console.log(configFile, "configuration file does not exist");
+      return;
+    }
+
+
+    const configContent: JsonConnectionConfig = JSON.parse(
+      fs.readFileSync(configFile, "utf-8")
+    );
+
+
+    return {
+      port: configContent.port ?? defaultOptions.port,
+      username: configContent.auth?.username ?? defaultOptions.username,
+      password: configContent.auth?.password ?? defaultOptions.password,
+      studio: configContent.studio ?? defaultOptions.studio,
+      driver: createConnectionFromConfig(configFile, configContent),
+    }
+  } catch (e) {
+    console.log(e);
+    console.log("The configuration is not a valid JSON file");
+    return null;
+  }
+}
+
+function detectCloudflareD1(defaultOptions: ServeOptions): boolean {
+  // Check if .wrangler folder exists
+  if (!fs.existsSync(".wrangler")) {
+    return false;
+  }
+
+  console.log("Cloudflare Worker projects detected because .wrangler folder exists");
+  console.log("Finding local D1 file")
+
+  // Find all the file that end with .sqlite inside the
+  // .wrangler/state folder
+  const found = glob.sync(".wrangler/state/**/*.sqlite", { ignore: "node_modules/**", });
+
+  if (found.length === 0) {
+    console.log("No local D1 file found");
+  }
+
+  serve({
+    ...defaultOptions,
+    driver: createConnectionFromConfig("cloudflare", {
+      driver: "sqlite",
+      connection: {
+        file: found[0],
+      }
+    })
+  })
+
+  return true;
+}
 
 program.parse();

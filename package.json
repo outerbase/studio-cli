@@ -1,6 +1,6 @@
 {
   "name": "@outerbase/studio",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "./dist/index.js",
   "scripts": {
     "bundle": "tsup",
@@ -25,6 +25,7 @@
     "commander": "^12.0.0",
     "express": "^4.19.2",
     "express-basic-auth": "^1.2.1",
+    "glob": "^11.0.1",
     "mysql2": "^3.11.0",
     "pg": "^8.13.1"
   },

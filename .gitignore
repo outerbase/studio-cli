@@ -2,3 +2,5 @@ node_modules
 dist
 outerbase*.json
 sqlite.db
+
+.wrangler

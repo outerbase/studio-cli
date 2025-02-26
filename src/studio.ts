@@ -1,6 +1,7 @@
 import express from "express";
 import expressBasicAuth from "express-basic-auth";
 import BaseDriver from "./drivers/base";
+import { JsonConnectionConfig } from "./type";
 
 const htmlCode = `<!doctype>
 <html>
@@ -48,22 +49,45 @@ const htmlCode = `<!doctype>
 </body>
 </html>`;
 
+export interface ServeOptions {
+  driver?: BaseDriver;
+  port: number;
+  username?: string;
+  password?: string;
+  log?: boolean;
+  studio?: string;
+}
+
 export function serve(
-  driver: BaseDriver,
-  {
+  options: ServeOptions | null
+) {
+  if (!options) {
+    return;
+  }
+
+  const {
+    driver,
     studio,
     port,
     username,
     password,
     log,
-  }: {
-    port: number;
-    username?: string;
-    password?: string;
-    log?: boolean;
-    studio?: string;
+  } = options
+
+  if (!driver) {
+    console.log("We couldn't find the right driver for this database");
+    return;
   }
-) {
+
+  const driverSuffix: Record<JsonConnectionConfig["driver"], string> = {
+    mysql: "mysql",
+    sqlite: "sqlite",
+    turso: "sqlite",
+    postgres: "postgres",
+  };
+
+  const studioFullUrl = studio + "/" + driverSuffix[driver.name];
+
   driver.init().then();
 
   const app = express();
@@ -81,7 +105,7 @@ export function serve(
   app.get("/", (_, res) => {
     return res.send(
       htmlCode
-        .replace("$studio", studio ?? "https://libsqlstudio.com/embed/sqlite")
+        .replace("$studio", studioFullUrl ?? "https://libsqlstudio.com/embed/sqlite")
         .replace("$title", driver.connectionName())
     );
   });
@@ -90,10 +114,10 @@ export function serve(
     const body:
       | { id: number; type: "query"; statement: string }
       | {
-          id: number;
-          type: "transaction";
-          statements: string[];
-        } = req.body;
+        id: number;
+        type: "transaction";
+        statements: string[];
+      } = req.body;
 
     try {
       if (body.type === "query") {
@@ -198,11 +222,11 @@ function printServingMessage(port: number) {
   for (const line of text) {
     console.log(
       "║" +
-        paddingSpace +
-        line +
-        space.substring(0, maxText - line.length) +
-        paddingSpace +
-        "║"
+      paddingSpace +
+      line +
+      space.substring(0, maxText - line.length) +
+      paddingSpace +
+      "║"
     );
   }
 
