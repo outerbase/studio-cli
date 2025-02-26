@@ -8,7 +8,8 @@ import {
 import fs from "fs";
 import { JsonConnectionConfig } from "./type";
 import { serve, ServeOptions } from "./studio";
-const STUDIO_PATH = "https://libsqlstudio.com/embed";
+
+const STUDIO_PATH = "https://studio.outerbase.com/embed";
 
 program
   .name("@outerbase/studio")
