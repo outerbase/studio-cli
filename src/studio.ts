@@ -28,7 +28,7 @@ const htmlCode = `<!doctype>
   <script>
     function handler(e) {
       if (e.data.type !== "query" && e.data.type !== "transaction") return;
-      fetch("/query", {
+      fetch("$basePathPrefix/query", {
         method: "post",
         headers: {
           "Content-Type": "application/json"
@@ -52,6 +52,7 @@ const htmlCode = `<!doctype>
 export interface ServeOptions {
   driver?: BaseDriver;
   port: number;
+  basePath?: string;
   username?: string;
   password?: string;
   log?: boolean;
@@ -69,10 +70,13 @@ export function serve(
     driver,
     studio,
     port,
+    basePath,
     username,
     password,
     log,
   } = options
+
+  const basePathPrefix = (basePath ?? "").replace(/^\/*/, '/').replace(/\/+$/, '');
 
   if (!driver) {
     console.log("We couldn't find the right driver for this database");
@@ -102,15 +106,16 @@ export function serve(
     );
   }
 
-  app.get("/", (_, res) => {
+  app.get(`${basePathPrefix}/`, (_, res) => {
     return res.send(
       htmlCode
         .replace("$studio", studioFullUrl ?? "https://libsqlstudio.com/embed/sqlite")
         .replace("$title", driver.connectionName())
+        .replace("$basePathPrefix", basePathPrefix)
     );
   });
 
-  app.post("/query", async (req, res) => {
+  app.post(`${basePathPrefix}/query`, async (req, res) => {
     const body:
       | { id: number; type: "query"; statement: string }
       | {
@@ -155,7 +160,7 @@ export function serve(
   });
 
   const server = app.listen(port);
-  printServingMessage(port);
+  printServingMessage(port, basePathPrefix);
 
   if (process.stdin.isTTY) {
     console.log("Press q | shutdown the server");
@@ -200,11 +205,11 @@ function getIPAddress() {
   return "0.0.0.0";
 }
 
-function printServingMessage(port: number) {
+function printServingMessage(port: number, basePathPrefix: string) {
   const text = [
     "Serving!",
-    `- Local:    http://localhost:${port}`,
-    `- Network:  http://${getIPAddress()}:${port}`,
+    `- Local:    http://localhost:${port}${basePathPrefix}`,
+    `- Network:  http://${getIPAddress()}:${port}${basePathPrefix}`,
   ];
 
   const paddingY = 1;
