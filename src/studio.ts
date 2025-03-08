@@ -157,20 +157,22 @@ export function serve(
   const server = app.listen(port);
   printServingMessage(port);
 
-  console.log("Press q | shutdown the server");
+  if (process.stdin.isTTY) {
+    console.log("Press q | shutdown the server");
 
-  process.stdin.setRawMode(true);
-  process.stdin.resume();
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
 
-  process.stdin.on("data", (buffer) => {
-    const c = new TextDecoder().decode(buffer);
+    process.stdin.on("data", (buffer) => {
+      const c = new TextDecoder().decode(buffer);
 
-    if (c.toUpperCase() === "Q" || buffer[0] === 3) {
-      console.log("Shutting down the server");
-      server.closeAllConnections();
-      process.exit();
-    }
-  });
+      if (c.toUpperCase() === "Q" || buffer[0] === 3) {
+        console.log("Shutting down the server");
+        server.closeAllConnections();
+        process.exit();
+      }
+    });
+  }
 
   process.on("SIGINT", function () {
     console.log("Caught interrupt signal");
