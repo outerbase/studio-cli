@@ -15,6 +15,7 @@ program
   .name("@outerbase/studio")
   .version("0.1.0")
   .option("--port <port>", "Set port to serve", "4000")
+  .option("--base-path <base-path>", "Set the base path for the web application", "/")
   .option("--user <username>", "Set basic authentication username")
   .option("--pass <password>", "Set basic authentication password")
   .option("--config <config-file>", "Launch studio using configuration file")
@@ -27,6 +28,7 @@ program
         pass?: string;
         user?: string;
         port?: number;
+        basePath?: string;
         config?: string;
         log?: boolean;
       }
@@ -34,6 +36,7 @@ program
       let options: ServeOptions = {
         driver: null,
         port: flags?.port ?? 4000,
+        basePath: flags?.basePath ?? "/",
         studio: STUDIO_PATH,
         username: flags?.user,
         password: flags?.pass,
